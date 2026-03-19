@@ -1,0 +1,95 @@
+# docker-compose.yml 
+
+
+# 1. postgres  — the database
+# 2. backend   — the C# API
+# 3. frontend  — the React app
+
+
+version: '3.9'
+
+services:
+
+  # ── SERVICE 1: PostgreSQL Database ─────
+  postgres:
+    # Use the official PostgreSQL 16 image from Docker Hub
+    image: postgres:16-alpine
+    
+    # Container will restart automatically if it crashes
+    restart: unless-stopped
+    
+    # Environment variables configure the PostgreSQL instance
+    environment:
+      POSTGRES_DB: authdb          # Creates this database on first run
+      POSTGRES_USER: authuser      # The database username
+      POSTGRES_PASSWORD: authpassword  # The database password
+    
+    # Volumes persist data — without this, data is LOST when the container stops
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+    # Only accessible within Docker's internal network (not exposed to host)
+    # For development, expose 5432 so you can connect with a DB client like DBeaver
+    ports:
+      - "5432:5432"  # host:container
+    
+    # Health check — Docker waits until Postgres is READY before starting backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authuser -d authdb"]
+      interval: 5s    # Check every 5 seconds
+      timeout: 5s     # Give up after 5 seconds
+      retries: 5      # Try 5 times before marking as unhealthy
+
+  # ── SERVICE 2: C# Backend API ──────────────────────────────────────────────
+  backend:
+    # Build from the Dockerfile in the backend directory
+    build:
+      context: ./backend
+      dockerfile: AuthApi/Dockerfile
+    
+    restart: unless-stopped
+    
+    # Map host port 5000 to container port 5000
+    # Your browser calls http://localhost:5000, Docker routes it to the container
+    ports:
+      - "5000:5000"
+    
+    # Override appsettings.json values with environment variables
+    # Environment variables take precedence over appsettings.json in ASP.NET Core
+    # NEVER put real secrets in docker-compose.yml in production — use Docker Secrets
+    environment:
+      # ASP.NET Core reads this format: "Section__Key" as nested config
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=authdb;Username=authuser;Password=authpassword"
+      Jwt__Key: "your-super-secret-jwt-key-minimum-32-characters"
+      Jwt__Issuer: "AuthApi"
+      Jwt__Audience: "AuthApp"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    
+    # depends_on ensures postgres starts and is HEALTHY before backend starts
+    # Without this, the API might start before the DB is ready and crash
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── SERVICE 3: React Frontend ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    
+    restart: unless-stopped
+    
+    # The React app runs on port 80 inside the container (Nginx)
+    # We expose it as port 3000 on the host
+    ports:
+      - "3000:80"
+    
+    # Frontend only needs the backend to be up (not necessarily healthy)
+    depends_on:
+      - backend
+
+# Named volumes persist data between container restarts
+# docker volume ls — to see volumes
+# docker volume rm auth-assessment_postgres_data — to reset the database
+volumes:
+  postgres_data:

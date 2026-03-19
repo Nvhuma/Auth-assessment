@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AuthApi.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a8eb194d17f7c9f930962468b4efa8db5f379bde")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed2a0730cdec503475501354fcf50e6e1277ab68")]
 [assembly: System.Reflection.AssemblyProductAttribute("AuthApi.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AuthApi.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
