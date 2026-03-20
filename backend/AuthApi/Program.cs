@@ -56,7 +56,8 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://localhost:3000",  // React dev server
+                 "http://localhost:3000",  // Docker frontend
+                "http://localhost:5173",  // React dev server
                 "http://frontend:3000"    // Docker container name
             )
             .AllowAnyHeader()   // Allow any request header (e.g., Authorization, Content-Type)
