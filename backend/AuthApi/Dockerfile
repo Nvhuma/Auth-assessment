@@ -1,7 +1,7 @@
 # backend/AuthApi/Dockerfile
 
 # ── Stage 1: BUILD ───
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 # Set the working directory inside the container
 WORKDIR /src
@@ -33,7 +33,7 @@ RUN dotnet publish "AuthApi/AuthApi.csproj" -c Release -o /app/publish --no-buil
 # Switch to the ASP.NET runtime image — much smaller (~200MB)
 # This is the image that actually runs in production
 # It does NOT have the SDK — you can't build code in it, only run it
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
 WORKDIR /app
 
