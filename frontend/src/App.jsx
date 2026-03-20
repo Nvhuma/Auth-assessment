@@ -1,36 +1,36 @@
 // frontend/src/App.jsx
-
-// App.jsx is the root component — it sets up routing.
-// React Router's BrowserRouter enables client-side routing:
-// - No page reloads when navigating between pages
-// - The URL changes but React renders the new component without a full refresh
-// This is what makes React a "Single Page Application" (SPA)
+// Root component — sets up routing, auth context, navbar, and the loader animation.
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
+import Loader from './components/Loader';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
-    // BrowserRouter: uses the HTML5 History API for clean URLs (no #hash)
     <BrowserRouter>
-      {/* AuthProvider wraps everything so ALL routes can access auth state */}
       <AuthProvider>
+        {/* W logo loader — shows on first load then fades out */}
+        <Loader />
+
+        {/* Sticky top navigation bar */}
+        <Navbar />
+
         <Routes>
-          {/* Public routes — accessible without authentication */}
+          {/* Public routes */}
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          
-          {/* Protected routes — wrapped in ProtectedRoute */}
-          {/* If not authenticated, ProtectedRoute redirects to /login */}
+
+          {/* Protected routes — ProtectedRoute redirects to /login if not authenticated */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
-          
-          {/* Default redirect: "/" goes to login */}
+
+          {/* Default redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
