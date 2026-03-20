@@ -1,9 +1,6 @@
 // frontend/src/pages/Register.jsx
-
-// Pages are "smart" components — they own state and make API calls.
-// They compose smaller UI components (like form fields, buttons).
-// keep API calls in pages (or custom hooks), not deep in UI components.
-// This keeps UI components "dumb" and reusable.
+// Register page with real-time password strength indicator.
+// Checks 4 rules as the user types — each rule met fills one strength bar.
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -11,67 +8,84 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import styles from './Auth.module.css';
 
+// Password rules — each has a label and a test function
+// This array drives both the strength bar AND the validation on submit
+const PASSWORD_RULES = [
+  { label: 'At least 6 characters',        test: (p) => p.length >= 6 },
+  { label: 'One uppercase letter',          test: (p) => /[A-Z]/.test(p) },
+  { label: 'One number',                    test: (p) => /[0-9]/.test(p) },
+  { label: 'One special character (!@#$%)', test: (p) => /[!@#$%^&*]/.test(p) },
+];
+
+// Returns a label and color class based on how many rules pass
+function getStrength(password) {
+  const score = PASSWORD_RULES.filter(r => r.test(password)).length;
+  if (score === 0) return { label: '',       color: 'empty'  };
+  if (score === 1) return { label: 'Weak',   color: 'weak'   };
+  if (score === 2) return { label: 'Fair',   color: 'fair'   };
+  if (score === 3) return { label: 'Good',   color: 'good'   };
+  return             { label: 'Strong', color: 'strong' };
+}
+
 function Register() {
-  // Controlled form state — React controls the form inputs
-  // This is "controlled components" pattern — React is the single source of truth
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
   });
-  
-  const [error, setError] = useState('');    // API error messages
-  const [loading, setLoading] = useState(false); // Disable button while submitting
-  
-  const { login } = useAuth();
-  const navigate = useNavigate(); // Programmatic navigation (redirect after login)
 
-  // Single handler for ALL form inputs 
-  // [e.target.name] = computed property key (dynamic property name)
+  const [error, setError]                   = useState('');
+  const [loading, setLoading]               = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [showPassword, setShowPassword]     = useState(false);
+
+  const { login } = useAuth();
+  const navigate  = useNavigate();
+
   const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,              // Keep all existing fields
-      [e.target.name]: e.target.value, // Update only the changed field
-    }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswordTouched(true);
+    handleChange(e);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default HTML form submission (page reload)
-    
-    setError('');       // Clear previous errors
-    setLoading(true);   // Show loading state
+    e.preventDefault();
+    setError('');
+
+    // Validate all rules pass before hitting the API
+    const failedRules = PASSWORD_RULES.filter(r => !r.test(formData.password));
+    if (failedRules.length > 0) {
+      setError(`Password needs: ${failedRules.map(r => r.label).join(', ')}`);
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      // POST to /api/auth/register
-      // Axios instance has baseURL set, so we just need the path
       const response = await api.post('/auth/register', {
         firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
+        lastName:  formData.lastName,
+        email:     formData.email,
+        password:  formData.password,
       });
 
-      // Destructure the response data
       const { token, user } = response.data;
-      
-      // Store auth state — this also saves to localStorage
       login(token, user);
-      
-      // Redirect to the user details page
       navigate('/dashboard');
-      
+
     } catch (err) {
-      // Axios throws on 4xx/5xx responses
-      // err.response?.data?.message is the error from the API's JSON body
-      setError(
-        err.response?.data?.message || 'Registration failed. Please try again.'
-      );
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
-      // "finally" runs whether the try succeeded or failed
       setLoading(false);
     }
   };
+
+  const strength   = getStrength(formData.password);
+  const scoreCount = PASSWORD_RULES.filter(r => r.test(formData.password)).length;
 
   return (
     <div className={styles.authContainer}>
@@ -79,7 +93,6 @@ function Register() {
         <h1 className={styles.title}>Create Account</h1>
         <p className={styles.subtitle}>Join us today</p>
 
-        {/* Show error message if there is one */}
         {error && <div className={styles.errorAlert}>{error}</div>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -89,8 +102,8 @@ function Register() {
               <input
                 id="firstName"
                 type="text"
-                name="firstName"           // Must match the formData key
-                value={formData.firstName} // Controlled: React controls the value
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
                 placeholder="John"
                 required
@@ -125,23 +138,74 @@ function Register() {
 
           <div className={styles.formGroup}>
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="At least 6 characters"
-              minLength={6}
-              required
-            />
+
+            {/* Password input with show/hide toggle */}
+            <div className={styles.passwordWrap}>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handlePasswordChange}
+                placeholder="Create a strong password"
+                required
+              />
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowPassword(prev => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Strength bars — only show after user starts typing */}
+            {passwordTouched && formData.password.length > 0 && (
+              <div className={styles.strengthWrap}>
+                <div className={styles.strengthBars}>
+                  {[0, 1, 2, 3].map(i => (
+                    <div
+                      key={i}
+                      className={`${styles.strengthBar} ${i < scoreCount ? styles[strength.color] : ''}`}
+                    />
+                  ))}
+                </div>
+                {strength.label && (
+                  <span className={`${styles.strengthLabel} ${styles[strength.color]}`}>
+                    {strength.label}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Rule checklist */}
+            {passwordTouched && (
+              <ul className={styles.rulesList}>
+                {PASSWORD_RULES.map((rule, i) => (
+                  <li
+                    key={i}
+                    className={`${styles.rule} ${rule.test(formData.password) ? styles.rulePassed : styles.ruleFailed}`}
+                  >
+                    {rule.test(formData.password) ? '✓' : '✗'} {rule.label}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={loading} // Prevent double-submission
-          >
+          <button type="submit" className={styles.submitButton} disabled={loading}>
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>

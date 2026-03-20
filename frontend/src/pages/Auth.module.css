@@ -20,7 +20,7 @@
   border: 1px solid var(--grey-mid);
 }
 
-/* Blue top accent bar — Wonga's signature blue underline style */
+/* Blue top accent bar */
 .authCard::before {
   content: '';
   display: block;
@@ -55,7 +55,7 @@
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .formGroup {
@@ -81,6 +81,7 @@
   background: var(--white);
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
+  width: 100%;
 }
 
 .formGroup input:focus {
@@ -92,6 +93,92 @@
   color: #b0bec5;
 }
 
+/* ── Password input wrapper ── */
+.passwordWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrap input {
+  padding-right: 2.75rem;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--grey-text);
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.eyeBtn:hover {
+  color: var(--blue);
+}
+
+/* ── Password strength bars ── */
+.strengthWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.strengthBars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.strengthBar {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--grey-mid);
+  transition: background 0.3s;
+}
+
+.strengthBar.weak   { background: #e53e3e; }
+.strengthBar.fair   { background: #ed8936; }
+.strengthBar.good   { background: #48bb78; }
+.strengthBar.strong { background: #0099cc; }
+
+.strengthLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: right;
+}
+
+.strengthLabel.weak   { color: #e53e3e; }
+.strengthLabel.fair   { color: #ed8936; }
+.strengthLabel.good   { color: #48bb78; }
+.strengthLabel.strong { color: #0099cc; }
+
+/* ── Password rules checklist ── */
+.rulesList {
+  list-style: none;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.rule {
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.rulePassed { color: #48bb78; }
+.ruleFailed { color: #b0bec5; }
+
+/* ── Error alert ── */
 .errorAlert {
   background: #fff5f5;
   color: #c53030;
@@ -104,6 +191,7 @@
   margin-bottom: 0.5rem;
 }
 
+/* ── Submit button ── */
 .submitButton {
   background: var(--blue);
   color: var(--white);
@@ -116,7 +204,6 @@
   cursor: pointer;
   transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
   margin-top: 0.5rem;
-  letter-spacing: 0.01em;
 }
 
 .submitButton:hover:not(:disabled) {
@@ -130,6 +217,7 @@
   cursor: not-allowed;
 }
 
+/* ── Switch text ── */
 .switchText {
   text-align: center;
   margin-top: 1.5rem;
