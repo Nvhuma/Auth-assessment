@@ -68,10 +68,10 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
 
         //Generating a JWT token for the newly registered user
-        var token = _tokenService.GenerateToken(user); // ✅ FIX: GenerateToken (not GenerationToken)
+        var token = _tokenService.GenerateToken(user); 
 
         //201 Created is the semantically correct status code for a successful resource creation
-        // we also return the token in the response body so the client can use it immediately after registration
+        //return the token in the response body so the client can use it immediately after registration
         return StatusCode(201, new AuthResponse
         {
             Token = token,
@@ -83,16 +83,16 @@ public class AuthController : ControllerBase
                 Email = user.Email
             }
         });
-    } // ✅ FIX: Register method closes HERE — Login is no longer nested inside
+    } 
 
     //Post: api/auth/login
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         // Implementation for user login
-        // Similar to registration, we validate the model and check credentials
+        // Similar to registration, validate the model and check credentials
 
-        // Find user by email (we stored emails lowercase, so compare lowercase)
+        // Find user by email 
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLower());
 
@@ -102,8 +102,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password" });
         }
 
-        var token = _tokenService.GenerateToken(user); // ✅ FIX: GenerateToken (not GenerationToken)
-
+        var token = _tokenService.GenerateToken(user); 
         return Ok(new AuthResponse
         {
             Token = token,
@@ -115,10 +114,10 @@ public class AuthController : ControllerBase
                 Email = user.Email
             }
         });
-    } // ✅ Login closes here
+    } 
 
     //Get: api/auth/profile
-    //[Authorize] means the client must include a valid JWT token in the Authorization header to access this endpoint
+    //client must include a valid JWT token in the Authorization header to access this endpoint
     [HttpGet("me")]
     [Authorize]
     public async Task<IActionResult> GetMe()

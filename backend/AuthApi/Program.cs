@@ -80,8 +80,8 @@ using (var scope = app.Services.CreateScope())
 // Otherwise the browser's preflight OPTIONS request gets rejected before CORS runs
 app.UseCors("AllowFrontend");
 
-// UseAuthentication = reads and validates the JWT token
-// UseAuthorization = checks if the validated user has permission (the [Authorize] attribute)
+
+// checks if the validated user has permission (the [Authorize] attribute)
 // ORDER IS CRITICAL: Authenticate first, then Authorize
 app.UseAuthentication();
 app.UseAuthorization();
@@ -91,5 +91,5 @@ app.MapControllers();
 
 app.Run();
 
-// Make Program class accessible for integration tests
+//class accessible for integration tests
 public partial class Program { }

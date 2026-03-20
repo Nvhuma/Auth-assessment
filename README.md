@@ -198,33 +198,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ---
 
 ## API Testing with Postman
-
-You can test all endpoints directly using Postman:
-
-**1. Import the collection:**
-- Open Postman
-- Click "New" → "HTTP Request"
-- Set method to `POST` and URL to `http://localhost:5000/api/auth/register`
-- Click "Body" → "raw" → "JSON"
-- Paste the register payload and click Send
-
-**2. Test the protected endpoint:**
-- Copy the `token` value from the register/login response
-- Create a new GET request to `http://localhost:5000/api/auth/me`
-- Click "Authorization" tab → Type: "Bearer Token"
-- Paste your token and click Send
-
-**3. Test unauthorized access:**
-- Call `GET /api/auth/me` without a token
-- Should return `401 Unauthorized` — confirming the endpoint is protected
-
----
-
-## Stopping the App
-
-```bash
-docker compose down        # Stop containers (data preserved)
-docker compose down -v     # Stop and delete database (fresh start)
+Included a  /docs folder with screenshots
 ```
 
 ---

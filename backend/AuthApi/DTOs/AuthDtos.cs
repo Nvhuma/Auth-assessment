@@ -15,7 +15,7 @@ public class RegisterRequest
     [Required(ErrorMessage = "Last name is required")]
     public string LastName { get; set; } = string.Empty;
 
-    //[EmailAddress] = Validation attribute that checks if the provided string is in a valid email format. If not, it will return a 400 Bad Request response wi error message.
+    //[EmailAddress] = Validation attribute that checks if the provided string is in a valid email format. If not, it will return a 400 Bad Request response with an error message.
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public string Email { get; set; } = string.Empty;
@@ -37,7 +37,7 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
-// ── OUTBOUND DTOs (what we send back to the client) ─────────────────────────
+// ── OUTBOUND DTOs (what we send back to the client) ───────
 
 public class AuthResponse
 {

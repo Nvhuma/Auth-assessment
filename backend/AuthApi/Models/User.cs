@@ -5,7 +5,7 @@ namespace AuthApi.Models;
 
 public class User
 {  
-    //Primary key - EF core convention: property named "Id" or "<ClassName>Id" is treated as primary key
+    //Primary key 
     public int Id { get; set; }
     
     // "required" attribute indicates that the property must have a value (cannot be null)

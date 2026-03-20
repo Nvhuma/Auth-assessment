@@ -1,11 +1,11 @@
-// Keepimg data access separated from the business logic
+// Keeping data access separated from the business logic
 
 using AuthApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthApi.Data;
 
-//Inherit from DbContext, which is the primary class responsible for interacting with the database in Entity Framework Core.
+
 
 public class AppDbContext : DbContext
 {

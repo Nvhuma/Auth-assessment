@@ -1,5 +1,5 @@
 // frontend/src/api/axios.js
-// We create a CUSTOM Axios instance instead of using the default axios object.
+//CUSTOM Axios instance instead of using the default axios object.
 // This allows us to set default config (base URL) and add interceptors ONCE,
 // and have it apply to every API call in the entire app.
 
