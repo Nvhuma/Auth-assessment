@@ -1,6 +1,7 @@
 // frontend/src/pages/Dashboard.jsx
-// Protected user details page — only accessible when logged in.
-// Wonga-inspired layout: blue hero banner, white detail cards, clean grid.
+// Protected user details page.
+// handleLogout now awaits the async logout function from AuthContext
+// which calls the backend before clearing local state.
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,17 +10,18 @@ import api from '../api/axios';
 import styles from './Dashboard.module.css';
 
 function Dashboard() {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
+  const { logout }              = useAuth();
+  const navigate                = useNavigate();
   const [userDetails, setUserDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Fetch fresh user details from the protected API endpoint on mount
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        // GET /api/auth/me — JWT token is auto-attached by our Axios interceptor
+        // GET /api/auth/me — JWT token auto-attached by Axios interceptor
         const response = await api.get('/auth/me');
         setUserDetails(response.data);
       } catch (err) {
@@ -32,9 +34,17 @@ function Dashboard() {
     fetchUserDetails();
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      // logout() calls POST /api/auth/logout on the backend
+      // then clears localStorage and auth state
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      // Navigate to login regardless
+      navigate('/login');
+    }
   };
 
   if (loading) {
@@ -99,8 +109,13 @@ function Dashboard() {
             </div>
           </div>
 
-          <button onClick={handleLogout} className={styles.logoutButton}>
-            Sign Out
+          {/* Sign out button — shows loading state while logout API call is in progress */}
+          <button
+            onClick={handleLogout}
+            className={styles.logoutButton}
+            disabled={loggingOut}
+          >
+            {loggingOut ? 'Signing out...' : 'Sign Out'}
           </button>
         </div>
 

@@ -32,13 +32,11 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        // Implementation for user registration
         // ASP.NET Core automatically validates the model based on data annotations in RegisterDto
-        //No need to check ModelState.IsValid manually here because of [ApiController]
+        // No need to check ModelState.IsValid manually here because of [ApiController]
 
-        //check if email is already taken
-        //"aync/await" allows the server to handle other requests while waiting for the database operation to complete
-        // critical scalability.
+        // check if email is already taken
+        // "async/await" allows the server to handle other requests while waiting for the database operation to complete
         var existingUser = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLower());
 
@@ -48,7 +46,7 @@ public class AuthController : ControllerBase
             return Conflict(new { message = "A user with this email already exists" });
         }
 
-        //hash the password before saving to the database
+        // hash the password before saving to the database
         // BCrypt.HashPassword generates a salt + hash in one call.
         // The salt is embedded in the resulting string — we don't manage it separately.
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -68,7 +66,7 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
 
         //Generating a JWT token for the newly registered user
-        var token = _tokenService.GenerateToken(user); 
+        var token = _tokenService.GenerateToken(user);
 
         //201 Created is the semantically correct status code for a successful resource creation
         //return the token in the response body so the client can use it immediately after registration
@@ -83,26 +81,32 @@ public class AuthController : ControllerBase
                 Email = user.Email
             }
         });
-    } 
+    }
 
     //Post: api/auth/login
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        // Implementation for user login
-        // Similar to registration, validate the model and check credentials
-
-        // Find user by email 
+        // Find user by email (stored lowercase, so compare lowercase)
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLower());
 
+        // STEP 1: Check user exists AND password is correct FIRST
+        // We check both in one condition to prevent user enumeration attacks —
+        // never tell the attacker whether the email or password was wrong
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            // 401 Unauthorized =  failed authentication
             return Unauthorized(new { message = "Invalid email or password" });
         }
 
-        var token = _tokenService.GenerateToken(user); 
+        // STEP 2: Reset logout flag — user is logging back in
+        // This only runs if user exists and password is correct
+        user.IsLoggedOut = false;
+        await _context.SaveChangesAsync();
+
+        // STEP 3: Generate and return the token
+        var token = _tokenService.GenerateToken(user);
+
         return Ok(new AuthResponse
         {
             Token = token,
@@ -114,16 +118,16 @@ public class AuthController : ControllerBase
                 Email = user.Email
             }
         });
-    } 
+    }
 
-    //Get: api/auth/profile
-    //client must include a valid JWT token in the Authorization header to access this endpoint
+    //Get: api/auth/me
+    // client must include a valid JWT token in the Authorization header to access this endpoint
     [HttpGet("me")]
     [Authorize]
     public async Task<IActionResult> GetMe()
     {
-        //User.findFirst() reads claims from the validated Jwt
-        // Midlleware decodes the token and populates
+        //User.FindFirst() reads claims from the validated JWT
+        // Middleware decodes the token and populates
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
                    ?? User.FindFirst("sub");
 
@@ -140,6 +144,13 @@ public class AuthController : ControllerBase
             return NotFound(new { message = "User not found" });
         }
 
+        // Reject requests from users who have logged out
+        // Even if the JWT is still valid, the server-side flag blocks access
+        if (user.IsLoggedOut)
+        {
+            return Unauthorized(new { message = "Token has been invalidated. Please log in again." });
+        }
+
         // Return user info (without password hash) so the client can display it in the UI
         return Ok(new UserDto
         {
@@ -148,6 +159,34 @@ public class AuthController : ControllerBase
             LastName = user.LastName,
             Email = user.Email
         });
-    } 
+    }
 
+    // POST: api/auth/logout
+    // Invalidates the user's token server-side by setting IsLoggedOut = true
+    // Even if someone has a copy of the JWT, it won't work after this
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        // Read the user ID from the JWT claims
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
+                   ?? User.FindFirst("sub");
+
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized(new { message = "Invalid token" });
+        }
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
+        // Mark user as logged out in the database
+        user.IsLoggedOut = true;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Logged out successfully" });
+    }
 }

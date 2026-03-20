@@ -23,4 +23,9 @@ public class User
     //Audit field
     //"DateTime" . UTC =  Coordinated Universal Time, a standard time format that is not affected by time zones or daylight saving time.
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+
+    // When true, all tokens for this user are invalid
+    // Set to true on logout, false on next login
+    public bool IsLoggedOut { get; set; } = false;
 }

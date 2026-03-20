@@ -1,56 +1,61 @@
 // frontend/src/context/AuthContext.jsx
+// Auth context — manages login state across the entire app.
+// logout() now calls the backend to invalidate the token server-side
+// before clearing localStorage.
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api/axios';
 
-
-// This is the "container" for our auth state
 const AuthContext = createContext(null);
 
-// This wraps our entire app and makes auth state available everywhere
 export function AuthProvider({ children }) {
-  // State: the current user object (null if not logged in)
-  const [user, setUser] = useState(null);
-  
-  // State: whether we're still checking if the user is logged in (initial load)
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // useEffect with empty dependency [] runs ONCE when the component mounts.
-  
+  // On every page load, restore session from localStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser  = localStorage.getItem('user');
     const storedToken = localStorage.getItem('token');
-    
+
     if (storedUser && storedToken) {
-      // Parse the stored JSON string back into an object
       setUser(JSON.parse(storedUser));
     }
-    
-    // Done checking — we know if user is logged in or not
+
     setLoading(false);
   }, []);
 
-  // Login function: store token + user in state AND localStorage
-  // localStorage persists across page refreshes (unlike component state)
+  // Store token + user in state AND localStorage after login/register
   const login = (token, userData) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
-  // Logout function: clear everything
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  // Call the backend logout endpoint THEN clear local state
+  // This invalidates the token server-side so it can't be reused
+  const logout = async () => {
+    try {
+      // Tell the backend to mark this token as invalid
+      // The Axios interceptor automatically attaches the Bearer token
+      await api.post('/auth/logout');
+    } catch (err) {
+      // Even if the API call fails, we still log out locally
+      // The token will expire naturally after 8 hours
+      console.error('Logout API call failed:', err);
+    } finally {
+      // Always clear local storage regardless of API result
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+    }
   };
 
-  // The value we expose to all consumers of this context
   const value = {
-    user,      // The current user object (or null)
-    loading,   // Are we still loading?
-    login,     // Function to log in
-    logout,    // Function to log out
-    isAuthenticated: !!user, // Boolean: is the user logged in? !! converts to boolean
+    user,
+    loading,
+    login,
+    logout,
+    isAuthenticated: !!user,
   };
 
   return (
@@ -60,11 +65,9 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Components just call: const { user, login, logout } = useAuth();
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    // If someone uses useAuth() outside of AuthProvider, give a clear error
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
