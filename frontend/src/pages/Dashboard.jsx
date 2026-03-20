@@ -68,7 +68,7 @@ function Dashboard() {
           </div>
           <div className={styles.welcomeText}>
             <h1 className={styles.welcomeTitle}>
-              Welcome back, {userDetails?.firstName}!
+              Welcome, {userDetails?.firstName}!
             </h1>
             <p className={styles.welcomeSubtitle}>
               Here's your account information
