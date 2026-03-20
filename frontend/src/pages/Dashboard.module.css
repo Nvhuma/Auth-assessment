@@ -1,110 +1,163 @@
 /* frontend/src/pages/Dashboard.module.css */
+/* Wonga-inspired dashboard — white cards, blue accents, clean grid layout */
 
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  background: var(--grey-light);
+  padding: 2.5rem 1.5rem;
 }
 
-.card {
-  background: white;
-  border-radius: 16px;
+.inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Hero welcome banner — blue background like Wonga's hero sections */
+.heroBanner {
+  background: var(--blue);
+  border-radius: var(--radius-lg);
   padding: 2.5rem;
-  width: 100%;
-  max-width: 560px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-}
-
-.header {
+  margin-bottom: 2rem;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 2px solid #f3f4f6;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative circle behind avatar — subtle depth */
+.heroBanner::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .avatar {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.4);
   color: white;
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.welcomeText {
+  position: relative;
+  z-index: 1;
 }
 
 .welcomeTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 0.25rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
 }
 
 .welcomeSubtitle {
-  color: #666;
-  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+/* Section label — Wonga uses blue underlines on section headings */
+.sectionLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--grey-text);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--blue);
+  display: inline-block;
+}
+
+/* Details card */
+.detailsCard {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--grey-mid);
 }
 
 .detailsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
-  margin-bottom: 2rem;
+  margin-top: 1.25rem;
 }
 
 .detailItem {
-  background: #f9fafb;
-  border-radius: 10px;
+  background: var(--grey-light);
+  border-radius: var(--radius);
   padding: 1rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  border-left: 3px solid var(--blue);
 }
 
 .detailLabel {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: #9ca3af;
+  font-weight: 700;
+  color: var(--grey-text);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
 }
 
 .detailValue {
   font-size: 1rem;
-  font-weight: 600;
-  color: #1a1a2e;
+  font-weight: 700;
+  color: var(--dark);
 }
 
+/* Sign out button */
 .logoutButton {
   width: 100%;
   padding: 0.875rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  color: #374151;
-  font-size: 1rem;
-  font-weight: 600;
+  border: 2px solid var(--grey-mid);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--grey-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: 'Nunito Sans', sans-serif;
   cursor: pointer;
   transition: all 0.2s;
+  margin-top: 1rem;
 }
 
 .logoutButton:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-light);
 }
 
-.loadingCard, .errorCard {
-  background: white;
-  border-radius: 16px;
-  padding: 2.5rem;
+/* Loading and error states */
+.loadingCard,
+.errorCard {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 3rem;
   text-align: center;
-  color: #666;
+  color: var(--grey-text);
+  font-size: 1rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--grey-mid);
 }
